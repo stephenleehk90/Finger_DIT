@@ -1,0 +1,42 @@
+CREATE OR REPLACE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `ingress`@`%` 
+    SQL SECURITY DEFINER
+VIEW `attendance - data audit list` AS
+    SELECT 
+        `b`.`userid` AS `User ID`,
+        CONCAT_WS(' ', `a`.`Name`, `a`.`lastname`) AS `Name`,
+        `a`.`Username` AS `User Name`,
+        `e`.`employeeid` AS `Employee ID`,
+        `d`.`gName` AS `Department`,
+        `b`.`verifycode` AS `Verify Type`,
+        `b`.`workcode` AS `Check Type`,
+        `c`.`machinesn` AS `Device No.`,
+        `c`.`DeviceName` AS `Device Name`,
+        `b`.`checktime` AS `Clock Time`
+    FROM
+        ((((`user` `a`
+        JOIN `auditdata` `b` ON ((`a`.`userid` = `b`.`userid`)))
+        JOIN `device` `c` ON ((`b`.`serialno` = `c`.`serialno`)))
+        JOIN `user_group` `d` ON ((`a`.`User_Group` = `d`.`id`)))
+        JOIN `user_info` `e` ON ((`a`.`userid` = `e`.`userid`))) 
+    UNION SELECT 
+        `b`.`userid` AS `User ID`,
+        '' AS `Name`,
+        '' AS `User Name`,
+        '' AS `Employee ID`,
+        '' AS `Department`,
+        `b`.`verifycode` AS `Verify Type`,
+        `b`.`workcode` AS `Check Type`,
+        `c`.`iddevice` AS `Device No.`,
+        `c`.`DeviceName` AS `Device Name`,
+        `b`.`checktime` AS `Clock Time`
+    FROM
+        (`auditdata` `b`
+        JOIN `device` `c` ON ((`b`.`serialno` = `c`.`serialno`)))
+    WHERE
+        (NOT (`b`.`userid` IN (SELECT 
+                `user`.`userid`
+            FROM
+                `user`)))
+    ORDER BY `Clock Time`
