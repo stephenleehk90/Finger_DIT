@@ -1,0 +1,32 @@
+CREATE OR REPLACE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `ingress`@`%` 
+    SQL SECURITY DEFINER
+VIEW `attendance_record` AS
+     SELECT 
+        `a`.`userid` AS `User ID`,
+        `a`.`date` AS `Date In`,
+        STR_TO_DATE(`a`.`att_in`, '%H:%i') AS `Time In`,
+        `a`.`date` AS `Date Out`,
+        STR_TO_DATE(`a`.`att_out`, '%H:%i') AS `Time Out`,
+        `b`.`username` AS `User Name`,
+        `b`.`employeeid` AS `Employee ID`,
+        `d`.`gName` AS `Department`
+    FROM
+        (((`user_info` `b`
+        JOIN `attendance` `a` ON ((`a`.`userid` = `b`.`userid`)))
+        JOIN `user` `c` ON ((`a`.`userid` = `c`.`userid`)))
+        JOIN `user_group` `d` ON ((`c`.`User_Group` = `d`.`id`))) 
+    UNION SELECT 
+        `b`.`userid` AS `User ID`,
+        NULL AS `Date In`,
+        NULL AS `Time In`,
+        NULL AS `Date Out`,
+        NULL AS `Time Out`,
+        `b`.`username` AS `User Name`,
+        `b`.`employeeid` AS `Employee ID`,
+        `d`.`gName` AS `Department`
+    FROM
+        ((`user_info` `b`
+        LEFT JOIN `user` `c` ON ((`b`.`userid` = `c`.`userid`)))
+        LEFT JOIN `user_group` `d` ON ((`c`.`User_Group` = `d`.`id`)))
